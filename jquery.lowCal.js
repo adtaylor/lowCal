@@ -16,7 +16,10 @@
   };
   
   $.Cal.settings = {
-    static: true
+    static: true,
+    currentDate: {},
+    currentPos : 0,
+    selectedDate : null
   };
   
   // ## Prototype stuff
@@ -29,7 +32,8 @@
       // and when instance is triggered again -> $el.lowCal();
       _init : function( callback ) {
         
-        log(this.options.static);
+        this._setDate();
+        log(this.options);
         logError('init');
       },
       
@@ -39,6 +43,7 @@
         this.options = $.extend( true, {}, $.Cal.settings, options );      
       },
       
+      
       option: function( key, value ){
         // set options AFTER initialization:
         // signature: $('#foo').bar({ cool:false });
@@ -46,15 +51,29 @@
           this.options = $.extend(true, this.options, key);
         } 
       },
-  
-      something : function () {
-        log('something');
+      
+      
+      _setDate: function () {
+        var d = new Date,
+            cd = {};
+        cd.Day = j.getDate();
+        cd.Month = j.getMonth();
+        cd.Year = j.getFullYear();
+
+        this.options.currentDate = f;
       },
       
-      _something : function () {
-        log('something private');
-      }
+      _redrawCal: function () {
+//                f.DaysInMonth = new Date(f.drawYear, f.drawMonth, 0).getDate();
+      },
       
+      _setMonth: function () {
+        var l = this._getInst(b[0]);
+        l._selectingMonthYear = false;
+        l["selected" + (j == "M" ? "Month" : "Year")] = l["draw" + (j == "M" ? "Month" : "Year")] = parseInt(f.options[f.selectedIndex].value, 10);
+                   
+      },
+    
   }; 
   
   
