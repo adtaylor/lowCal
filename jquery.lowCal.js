@@ -16,10 +16,11 @@
   };
   
   $.Cal.settings = {
-    static: true,
     currentDate: {},
     currentPos : 0,
-    selectedDate : null
+    selectedDate : null,
+    format : 'dd/mm/yyyy',
+    m_names : new Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
   };
   
   // ## Prototype stuff
@@ -27,20 +28,30 @@
   
   $.Cal.prototype = {
 
-    
       // _init fires when instance is first created
       // and when instance is triggered again -> $el.lowCal();
       _init : function( callback ) {
-        
-        this._setDate();
-        log(this.options);
-        logError('init');
+        var $opt = this.options;
+        $opt.format = $opt.format.split('/');  
+        $opt.currentDate = this._setDate( this.element.val() ? this.element.val() : new Date );
+
+        log( this.getCurrentDate());
+        log(this._daysInMonth( 'next' ));
+      },
+      
+      
+      tester : function (a) {
+        log('obj changed');
+        log(a);
       },
       
       
       //
       _create: function( options ){
-        this.options = $.extend( true, {}, $.Cal.settings, options );      
+        this.options = $.extend( true, {}, $.Cal.settings, options );
+        
+        // split format into array to help determine how the user wants the date returned
+          
       },
       
       
@@ -53,26 +64,81 @@
       },
       
       
-      _setDate: function () {
-        var d = new Date,
-            cd = {};
-        cd.Day = j.getDate();
-        cd.Month = j.getMonth();
-        cd.Year = j.getFullYear();
+      
+      // ### _setDate()
+      // Helper function to set the current date
+      _setDate: function ( d ) {
+        var cd = {};
+        if ( typeof d === 'string' ) {
+          return this._splitDateString( d );
+        }
+        else {
+          cd.Day = d.getDate();
+          cd.Month = d.getMonth() + 1;
+          cd.Year = d.getFullYear();
+        }
+        return cd;  
+      },
+      
+      
+      // ### _splitDateString
+      // Split the date string into a usable object       
+      _splitDateString : function ( dateString ) {
+        var cd = {},
+            dateString = dateString.split('/'); 
+        $.map( this.options.format , function(item, index) {
+          switch (item) {
+            case 'd' : 
+            case 'dd' : 
+              cd.Day = dateString[index];
+              break;
+            case 'm' : 
+            case 'mm' : 
+              cd.Month = dateString[index];
+              break;
+            case 'y' : 
+            case 'yy' : 
+            case 'yyyy' : 
+              cd.Year = dateString[index];
+              break;
+          }
+        });
+        
+        return cd;
+        
+      },
+      
+      _daysInMonth : function ( move ) {
+        var cd = this.options.currentDate,
+            month = ( move == 'next' ) ? parseInt(cd.Month) + 1 : parseInt(cd.Month) - 1,
+            year = cd.Year;
 
-        this.options.currentDate = f;
+        if ( move === 'prev' && month === 0 ) {
+          year--;
+          month = 12;
+          log('hi--');
+        }
+        else if ( move === 'next' && month === 13 ) {
+          year++;
+          month = 1;
+          log('hi++');
+        }
+        // obviously this sucks — but it works!
+        return [ [year, month , 1] , 32 - new Date(year, (month - 1) , 32).getDate() , new Date(year, (month - 1) , 1).getDay() ];
       },
       
-      _redrawCal: function () {
-//                f.DaysInMonth = new Date(f.drawYear, f.drawMonth, 0).getDate();
+      
+      // ### getCurrentDate
+      // Returns the Current dates in prefered format
+      getCurrentDate : function () {
+        return this._formatDate( this.options.currentDate );
       },
       
-      _setMonth: function () {
-        var l = this._getInst(b[0]);
-        l._selectingMonthYear = false;
-        l["selected" + (j == "M" ? "Month" : "Year")] = l["draw" + (j == "M" ? "Month" : "Year")] = parseInt(f.options[f.selectedIndex].value, 10);
-                   
-      },
+      _formatDate : function ( dateArray ) {
+        return dateArray.Day + "/" + dateArray.Month + "/" + dateArray.Year;
+      }
+      
+
     
   }; 
   
