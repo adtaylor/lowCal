@@ -12,28 +12,32 @@ function tests( ) {
 
 var dateSet = '17/08/2011',
     dateNew = new Date,
-    td = dateNew.getDate() + "/" + dateNew.getMonth() + "/" + dateNew.getFullYear(),
+    td = dateNew.getDate() + "/" + (dateNew.getMonth()+1 ) + "/" + dateNew.getFullYear(),
+    thisMonthStarts = new Date( dateNew.getFullYear() , dateNew.getMonth() , 1 ).getDay(),
+    days = [ '', 'Monday' , 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday' ],
     inputEl = '<input type="text" class="date" value="@@" />',
     $el = $('#qunit-fixture');
 
 module("lowCal");
 test("Set dates", function() {
-  var t, inst, setDate;
   
-  expect(2);
-  t = $el.html( inputEl.replace('@@', dateSet ));
+  expect(4);
+  var t = $el.html( inputEl.replace('@@', dateSet )),
   inst = $('.date').lowCal(),
-  setDate = inst.data('lowCal').getCurrentDate();
-  
+  setDate = inst.data('lowCal').getCurrentDate(),
+  monthStarts = inst.data('lowCal')._dayMonthBegins();
   equal( setDate, dateSet, "Date Set via input" );
+  equal( monthStarts , 1 , "The month of August starts on a Monday (1) " );
   inst.remove();
 
 
   t = $el.html( inputEl.replace('@@', '' ));
-  inst = $('.date').lowCal(),
+  inst = $('.date').lowCal();
   setDate = inst.data('lowCal').getCurrentDate();
-  
+  monthStarts = inst.data('lowCal')._dayMonthBegins();
   equal( setDate, td, "Date Set via input" );
+  console.log( [ 'month starts' , thisMonthStarts ])
+  equal( monthStarts , thisMonthStarts , "This month starts on … " + days[thisMonthStarts] + " (" + thisMonthStarts + ")" );
 });
 
 test("Check for leap years", function() {
