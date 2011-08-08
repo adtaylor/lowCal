@@ -70,6 +70,16 @@
         } 
       },
       
+      // ##Event handleing  
+      
+      // ### delegateEvents
+      // 
+      _delegateEvents : function () {
+      
+      
+      
+      },
+      
       // ## Date functions
       
       // ### _setDate()  
@@ -170,10 +180,10 @@
         return dateObj.Day + "/" + dateObj.Month + "/" + dateObj.Year;
       },
       
-      // ## Date Chaching functions
+      // ## Caching functions
       
       // ### _addToCache   
-      // Add date to cache\
+      // Add item to cache  
       // @param {string} store name of the store
       // @param {obj} date date object
       _addToCache : function ( store , dateObj , storeObj ) {
@@ -183,9 +193,9 @@
       },
       
       // ### _checkCache
-      // query the cache for a previously made object
-      // @param {string} store name of the store
-      // @param {obj} date date object
+      // query the cache for a previously made object  
+      // @param {string} store name of the store  
+      // @param {obj} date date object  
       _checkCache : function ( store ,  dateObj ) {
         if ( !this.cache[store] ) { logError('No store called ' + store); return false;}
         if (this.cache[store][ dateObj.Year ])
