@@ -20,7 +20,7 @@
   
   $.Cal.templates = {
     days :'<% $.each(days, function(index, val) { %><li class="lc-date"><span><%=val.Day%></span></li><% }); %>',
-    navBar : '<li class="lc-arrow lc-arrow-prev"><img /><<</li><li class="lc-currDate"><%=date%></li><li class="lc-arrow lc-arrow-next lc-lastUnit"><img />>></li>',
+    navBar : '<li data-move="prev"  class="lc-arrow lc-arrow-prev"><img /><<</li><li class="lc-currDate"><%=date%></li><li data-move="next" class="lc-arrow lc-arrow-next lc-lastUnit"><img />>></li>',
     cal : '<div id="lc-<%=instID%>" class="lowCal"><div class="lc-inner"><div class="lc-hd"><ul class="lc-navBar lc-line"><%=navBar%></ul><ul class="days lc-line"><li>Mo</li><li>Tu</li><li>We</li><li>Th</li><li>Fr</li><li>Sa</li><li class="lc-lastUnit">Su</li></ul></div><div class="bd"><ol class="lc-dates lc-line"><%=days%></ol></div></div></div><style type="text/css">.lc-hide{position: absolute;top:-1000px;left: -1000px;}.lc-bd, .lc-hd}display: inline-block;width: 100%;zoom: 1;vertical-align: top;}.lowCal li{list-style: none;}.lc-inner{position: relative;}.lc-lastUnit}display: table-cell;float: none;width: auto;_position: relative;_left: -3px;_margin-right: -3px;}.lc-inner:after, .lc-lastUnit:after, .lc-line:after{clear:both;display:block;visibility:hidden;overflow:hidden;height:0!important;line-height:0;font-size:xx-large;content:" x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x "}.lc-line{*zoom:1;margin:0}.lc-navBar .lc-arrow-prev{float: left;width : 13%}.lc-navBar .lc-currDate{float: left;width: 75%}.lowCal .days li, .lc-date{float: left;width: 14.29%;}</style>'
   };
   
@@ -44,10 +44,10 @@
       _init : function( callback ) {
         var $opt = this.options;
         $opt.format = $opt.format.split('/');
-        log(this._setDate( this.el.val() ? this.el.val() : new Date ));
         $opt.currentDate = this._setDate( this.el.val() ? this.el.val() : new Date );
         
-        this._initCal();
+        this._uiInit();
+        
         
       },
       
@@ -57,6 +57,9 @@
         this.options = $.extend( true, {}, $.Cal.settings, options );
         this.cache.date = {};
         this.cache.template = {};
+        // setUp events 
+        this._delegateEvents();
+        
         // Allow for custom templates
         this.options.templates = $.extend( true, {}, $.Cal.templates,  this.options.templates );          
       },
@@ -70,14 +73,48 @@
         } 
       },
       
-      // ##Event handleing  
+      // ## Event handling  
       
       // ### delegateEvents
       // 
       _delegateEvents : function () {
+        var that = this;
+        this.el.bind({
+            'changeMonth.lowCal'  : function( event , d ){
+              that.updateCalendar( that._changeMonth( d ) );
+            }
+          });
+      },
       
       
+      // ## UI Functions  
       
+      // ### _uiInit  
+      // Set up the UI
+      
+      _uiInit : function () {
+        var calendar = this._initCal();
+        
+        this.el.wrap('<div id="lc-wrap-'+this.options.instID+'" />');
+        
+        // hide the input and insert the cal
+        this.el.hide().after( calendar );
+        this.cal = $('#lc-'+this.options.instID);
+        this.calBody = $(this.cal).find('.lc-dates');
+        this._uiInteractions();
+      },
+      
+      _uiInteractions : function () {
+        var that = this;
+        $(this.cal).find('.lc-arrow').click(function() { that.el.trigger( 'changeMonth.lowCal' , $(this).data('move') )});
+      },
+      
+      updateCalendar : function ( dateObj ) {
+      log([ 'date' , this.options.currentDate , dateObj ]);
+        this.options.currentDate =  dateObj;
+        
+        log(this._makeCalMonthTemplate());
+        this.calBody.html(this._makeCalMonthTemplate())
       },
       
       // ## Date functions
@@ -99,7 +136,6 @@
           cd.Year = d.Year || d.getFullYear();
           cd.daysInMonth = this._daysInMonth( cd.Month , cd.Year );
           cd.monthBegins = this._dayMonthBegins( cd.Month , cd.Year );
-          
           return this._addToCache( 'date' , cd , cd );
         } 
       },
@@ -219,8 +255,7 @@
         uiObj['days'] = this._buildCalDays();
         
 
-        this.el.after(this._tmpl( tmpls.cal , uiObj )); 
-
+        return this._tmpl( tmpls.cal , uiObj );
       },
       
       // ### Build nav bar 
