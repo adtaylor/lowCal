@@ -101,6 +101,7 @@
         this.el.hide().after( calendar );
         this.cal = $('#lc-'+this.options.instID);
         this.calBody = $(this.cal).find('.lc-dates');
+        this.calMonth = $(this.cal).find('.lc-currDate');
         this._uiInteractions();
       },
       
@@ -109,12 +110,12 @@
         $(this.cal).find('.lc-arrow').click(function() { that.el.trigger( 'changeMonth.lowCal' , $(this).data('move') )});
       },
       
-      updateCalendar : function ( dateObj ) {
-      log([ 'date' , this.options.currentDate , dateObj ]);
-        this.options.currentDate =  dateObj;
-        
-        log(this._makeCalMonthTemplate());
-        this.calBody.html(this._makeCalMonthTemplate())
+      updateCalendar : function ( date ) {
+        var opts = this.options;
+        log(opts.currentDate);
+        this.calMonth.text( opts.m_names[ opts.currentDate.Month - 1 ] );
+      
+        ( $.type( date ) === 'object' ) ? this.calBody.html(this._makeCalMonthTemplate()) : this.calBody.html(date);  
       },
       
       // ## Date functions
@@ -127,15 +128,21 @@
           return this._splitDateString( d );
         }
         else {
-          var cr = this._checkCache( 'date' , d );
-          if( cr )
-            return cr;
+        
+          
             
           cd.Day = d.Day || d.getDate();
           cd.Month = d.Month || d.getMonth() + 1;
           cd.Year = d.Year || d.getFullYear();
           cd.daysInMonth = this._daysInMonth( cd.Month , cd.Year );
           cd.monthBegins = this._dayMonthBegins( cd.Month , cd.Year );
+          this.options.currentDate =  cd;
+          
+          // cache test result and if we get a win we return the result
+          var cr = this._checkCache( 'date' , d );
+          if( cr )
+            return cr;
+            
           return this._addToCache( 'date' , cd , cd );
         } 
       },
@@ -163,14 +170,16 @@
               break;
           }
         });
+                
+        d.daysInMonth = this._daysInMonth( d.Month , d.Year );
+        d.monthBegins = this._dayMonthBegins( d.Month , d.Year );
+        this.options.currentDate = d;
         
         // cache test result and if we get a win we return the result
         var cr = this._checkCache( 'date' ,  d );
         if( cr )
           return cr;
         
-        d.daysInMonth = this._daysInMonth( d.Month , d.Year );
-        d.monthBegins = this._dayMonthBegins( d.Month , d.Year );
         return this._addToCache( 'date' , d , d );
       },
       
