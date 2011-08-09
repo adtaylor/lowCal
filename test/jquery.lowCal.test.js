@@ -2,14 +2,11 @@ $(document).ready(function() {
   tests();
 });
 
-
-
-
 function tests( ) {
 
 module("lowCal", {
   setup: function() {
-  console.log('setup');
+    S.open('../index.html');
     this.dateSet = '17/08/2011';
     this.dateNew = new Date();
     this.td = this.dateNew.getDate() + "/" + (this.dateNew.getMonth()+1 ) + "/" + this.dateNew.getFullYear();
@@ -30,6 +27,7 @@ module("lowCal", {
 
 
 test("Set dates", function() {
+  console.log(S);
   var inst = $('.date').lowCal(),
       setDate = inst.data('lowCal').getCurrentDate();
       
@@ -65,16 +63,7 @@ test("Test for IS leap year", function() {
         } else {
           notEqual( inst.data('lowCal')._daysInMonth( "02" , i ) , leapDays , i + " is NOT a leap year");
         }
-        
       });
-  for (var i = 0; i < years.length; i++) {
-    
-    console.log();
-  }
-
-  console.log(years.length);
-  this.addInput('');
-  
 });
 
 }
