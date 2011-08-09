@@ -1,4 +1,3 @@
-
 $(document).ready(function() {
   tests();
 });
@@ -8,88 +7,74 @@ $(document).ready(function() {
 
 function tests( ) {
 
-//QUnit.config.hidepassed = true;
+module("lowCal", {
+  setup: function() {
+  console.log('setup');
+    this.dateSet = '17/08/2011';
+    this.dateNew = new Date();
+    this.td = this.dateNew.getDate() + "/" + (this.dateNew.getMonth()+1 ) + "/" + this.dateNew.getFullYear();
+    this.thisMonthStarts = new Date( this.dateNew.getFullYear() , this.dateNew.getMonth() , 1 ).getDay();
+    this.days = [ '', 'Monday' , 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday' ];
+    this.inputEl = '<input type="text" class="date" value="@@" />';
+    this.el = $('#qunit-fixture');
+    this.addInput( this.dateSet );
+  },
+  addInput: function( date ) {
+    this.t = this.el.html( this.inputEl.replace('@@', date ));
+  },
+  teardown: function () {
+    return this;
+  }
+});
 
-var dateSet = '17/08/2011',
-    dateNew = new Date,
-    td = dateNew.getDate() + "/" + (dateNew.getMonth()+1 ) + "/" + dateNew.getFullYear(),
-    thisMonthStarts = new Date( dateNew.getFullYear() , dateNew.getMonth() , 1 ).getDay(),
-    days = [ '', 'Monday' , 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday' ],
-    inputEl = '<input type="text" class="date" value="@@" />',
-    $el = $('#qunit-fixture');
 
-module("lowCal");
+
 test("Set dates", function() {
-  expect(4);
-  
-  // Test for getting the date from a input field
-  var t = $el.html( inputEl.replace('@@', dateSet )),
-  inst = $('.date').lowCal(),
-  setDate = inst.data('lowCal').getCurrentDate();
-  equal( setDate, dateSet, "Date Set via input" );
+  var inst = $('.date').lowCal(),
+      setDate = inst.data('lowCal').getCurrentDate();
+      
+  equal( setDate, this.dateSet, "Date Set via input" );
   
   // Test for checking when the week starts (from input field)
   var testDateObj = inst.data('lowCal')._splitDateString(setDate);
-  monthStarts = inst.data('lowCal')._dayMonthBegins( testDateObj.Month , testDateObj.Year );
+  var monthStarts = inst.data('lowCal')._dayMonthBegins( testDateObj.Month , testDateObj.Year );
   equal( monthStarts , 1 , "The month of August 2011 starts on a Monday (1) " );
-  // pull down the instance
   inst.remove();
 
   // Test for getting date from Date()
-  t = $el.html( inputEl.replace('@@', '' ));
+  this.addInput('');
   inst = $('.date').lowCal();
   setDate = inst.data('lowCal').getCurrentDate();
-  equal( setDate, td, "Date Set via Date()" );
+  equal( setDate, this.td, "Date Set via Date()" );
   
   testDateObj = inst.data('lowCal')._splitDateString(setDate);
   monthStarts = inst.data('lowCal')._dayMonthBegins( testDateObj.Month , testDateObj.Year );
-  equal( monthStarts , thisMonthStarts , "This month starts on … " + days[thisMonthStarts] + " (" + thisMonthStarts + ")" );
-  inst.remove();
+  equal( monthStarts , this.thisMonthStarts , "This month starts on … " + this.days[this.thisMonthStarts] + " (" + this.thisMonthStarts + ")" );
+//  inst.remove();
 });
 
-test("Check for leap years", function() {
+test("Test for IS leap year", function() {
+  var years = {2100 : false , 2005 : false, 2004 : true , 2003 : false, 2001 : false, 2000 : true , 1999  : false },
+      feb = "01/02/",
+      inst = $('.date').lowCal(),
+      leapDays = 29;
+      
+      $.each(years, function ( i , v ) { 
+        if ( v ) {
+          equal( inst.data('lowCal')._daysInMonth( "02" , i ) , leapDays , i + " is a leap year");
+        } else {
+          notEqual( inst.data('lowCal')._daysInMonth( "02" , i ) , leapDays , i + " is NOT a leap year");
+        }
+        
+      });
+  for (var i = 0; i < years.length; i++) {
+    
+    console.log();
+  }
 
-//    2100, 2005, 2004, 2003, 2001, 2000 and 1999 
-//    2004 and 2000 should be leap years
-
-	ok(true);
+  console.log(years.length);
+  this.addInput('');
+  
 });
 
-test("Check month decrement", function() {
-	ok(true);
-});
-
-test("Check month to year increment", function() {
-	ok(true);
-});
-
-test("Check month to year decrement", function() {
-	ok(true);
-});
-
-
-
-
-
-
-
-module("Render Calendar");
-test("Render Cal widget", function() {
-	ok(true);
-});
-
-test("Test binds on buttons", function() {
-	ok(true);
-});
-
-
-
-module("Set input");
-
-test("Set value to input", function() {
-	expect(1);
-	ok(true);
-});
-
-};
-
+}
