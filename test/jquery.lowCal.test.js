@@ -20,24 +20,31 @@ var dateSet = '17/08/2011',
 
 module("lowCal");
 test("Set dates", function() {
-  
   expect(4);
+  
+  // Test for getting the date from a input field
   var t = $el.html( inputEl.replace('@@', dateSet )),
   inst = $('.date').lowCal(),
-  setDate = inst.data('lowCal').getCurrentDate(),
-  monthStarts = inst.data('lowCal')._dayMonthBegins();
+  setDate = inst.data('lowCal').getCurrentDate();
   equal( setDate, dateSet, "Date Set via input" );
-  equal( monthStarts , 1 , "The month of August starts on a Monday (1) " );
+  
+  // Test for checking when the week starts (from input field)
+  var testDateObj = inst.data('lowCal')._splitDateString(setDate);
+  monthStarts = inst.data('lowCal')._dayMonthBegins( testDateObj.Month , testDateObj.Year );
+  equal( monthStarts , 1 , "The month of August 2011 starts on a Monday (1) " );
+  // pull down the instance
   inst.remove();
 
-
+  // Test for getting date from Date()
   t = $el.html( inputEl.replace('@@', '' ));
   inst = $('.date').lowCal();
   setDate = inst.data('lowCal').getCurrentDate();
-  monthStarts = inst.data('lowCal')._dayMonthBegins();
-  equal( setDate, td, "Date Set via input" );
-  console.log( [ 'month starts' , thisMonthStarts ])
+  equal( setDate, td, "Date Set via Date()" );
+  
+  testDateObj = inst.data('lowCal')._splitDateString(setDate);
+  monthStarts = inst.data('lowCal')._dayMonthBegins( testDateObj.Month , testDateObj.Year );
   equal( monthStarts , thisMonthStarts , "This month starts on … " + days[thisMonthStarts] + " (" + thisMonthStarts + ")" );
+  inst.remove();
 });
 
 test("Check for leap years", function() {

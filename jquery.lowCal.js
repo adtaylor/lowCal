@@ -6,7 +6,7 @@
  * Copyright 2011 Ad Taylor (@iamadtaylor)
  */
  
-(function( window, $, undefined ){
+( function( window, $ ){
 
   this.debug = true;
   this.debugStrict = true;
@@ -14,14 +14,14 @@
     this.el = $( element );
     this.cache = {};
 
-    this._create( options )
+    this._create( options );
     this._init();
   };
   
   $.Cal.templates = {
-    days :'<% $.each(days, function(index, val) { %><li class="lc-date"><span><%=val.Day%></span></li><% }); %>',
+    days :'<% $.each(days, function(index, val) { %><li class="lc-date <% if(val.lcclass) { %><%=val.lcclass%><% } %> <% if(val.selected) { %><%=val.selected%><% } %>" data-date="<%=val.date%>"><span><%=val.Day%></span></li><% }); %>',
     navBar : '<li data-move="prev"  class="lc-arrow lc-arrow-prev"><img /><<</li><li class="lc-currDate"><%=date%></li><li data-move="next" class="lc-arrow lc-arrow-next lc-lastUnit"><img />>></li>',
-    cal : '<div id="lc-<%=instID%>" class="lowCal"><div class="lc-inner"><div class="lc-hd"><ul class="lc-navBar lc-line"><%=navBar%></ul><ul class="days lc-line"><li>Mo</li><li>Tu</li><li>We</li><li>Th</li><li>Fr</li><li>Sa</li><li class="lc-lastUnit">Su</li></ul></div><div class="bd"><ol class="lc-dates lc-line"><%=days%></ol></div></div></div><style type="text/css">.lc-hide{position: absolute;top:-1000px;left: -1000px;}.lc-bd, .lc-hd}display: inline-block;width: 100%;zoom: 1;vertical-align: top;}.lowCal li{list-style: none;}.lc-inner{position: relative;}.lc-lastUnit}display: table-cell;float: none;width: auto;_position: relative;_left: -3px;_margin-right: -3px;}.lc-inner:after, .lc-lastUnit:after, .lc-line:after{clear:both;display:block;visibility:hidden;overflow:hidden;height:0!important;line-height:0;font-size:xx-large;content:" x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x "}.lc-line{*zoom:1;margin:0}.lc-navBar .lc-arrow-prev{float: left;width : 13%}.lc-navBar .lc-currDate{float: left;width: 75%}.lowCal .days li, .lc-date{float: left;width: 14.29%;}</style>'
+    cal : '<div id="lc-<%=instID%>" class="lowCal"><div class="lc-inner"><div class="lc-hd"><ul class="lc-navBar lc-line"><%=navBar%></ul><ul class="days lc-line"><li>Mo</li><li>Tu</li><li>We</li><li>Th</li><li>Fr</li><li>Sa</li><li class="lc-lastUnit">Su</li></ul></div><div class="bd"><ol class="lc-dates lc-line"><%=days%></ol></div></div></div><style type="text/css">.lc-hide{position: absolute;top:-1000px;left: -1000px;}.lc-bd, .lc-hd}display: inline-block;width: 100%;zoom: 1;vertical-align: top;}.lowCal li{list-style: none;}.lc-inner{position: relative;}.lc-lastUnit{display: table-cell;float: none;width: auto;_position: relative;_left: -3px;_margin-right: -3px;}.lc-inner:after, .lc-lastUnit:after, .lc-line:after{clear:both;display:block;visibility:hidden;overflow:hidden;height:0!important;line-height:0;font-size:xx-large;content:" x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x "}.lc-line{*zoom:1;margin:0}.lc-navBar .lc-arrow-prev{float: left;width : 13%}.lc-navBar .lc-currDate{float: left;width: 75%}.lowCal .days li, .lc-date{float: left;width: 14.29%;}</style>'
   };
   
   $.Cal.settings = {
@@ -30,8 +30,9 @@
     instID : new Date().getTime(),
     selectedDate : null,
     format : 'dd/mm/yyyy',
-    m_names : new Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"),
-    templates : null
+    m_names :  ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    templates : null,
+    selectedClass : 'lc-selected'
   };
   
   // ## Prototype stuff
@@ -44,24 +45,29 @@
       _init : function( callback ) {
         var $opt = this.options;
         $opt.format = $opt.format.split('/');
-        $opt.currentDate = this._setDate( this.el.val() ? this.el.val() : new Date );
+        $opt.currentDate = this._setDate( this.el.val() ? this.el.val() : new Date() );
         
         this._uiInit();
-        
-        
       },
       
       
       //
       _create: function( options ){
         this.options = $.extend( true, {}, $.Cal.settings, options );
-        this.cache.date = {};
-        this.cache.template = {};
+        this.cache = this._initCache();
         // setUp events 
-        this._delegateEvents();
+        this._events();
         
         // Allow for custom templates
         this.options.templates = $.extend( true, {}, $.Cal.templates,  this.options.templates );          
+      },
+      
+      _initCache : function () {
+        return {
+          date : {},
+          template : {},
+          prevDate : {}
+        };
       },
       
       //## option
@@ -77,11 +83,16 @@
       
       // ### delegateEvents
       // 
-      _delegateEvents : function () {
+      _events : function () {
         var that = this;
         this.el.bind({
             'changeMonth.lowCal'  : function( event , d ){
               that.updateCalendar( that._changeMonth( d ) );
+            },
+            'setNewDate.lowCal' : function( event , d ){
+              that._setInputDate( d.date );
+              that._changeSelected( d.el );
+              log(['setnewdate', d.date ]);
             }
           });
       },
@@ -93,29 +104,40 @@
       // Set up the UI
       
       _uiInit : function () {
-        var calendar = this._initCal();
-        
+        // initalise the main templates
+        var calendar = this._initCal(), 
+            that = this;
+        // Wrap the input 
         this.el.wrap('<div id="lc-wrap-'+this.options.instID+'" />');
-        
-        // hide the input and insert the cal
         this.el.hide().after( calendar );
+        
         this.cal = $('#lc-'+this.options.instID);
         this.calBody = $(this.cal).find('.lc-dates');
         this.calMonth = $(this.cal).find('.lc-currDate');
+        // Now the calendar is built lets attach the events
         this._uiInteractions();
       },
       
+      // ### _uiInteractions  
+      // A controller of the simple interactions of lowCal
       _uiInteractions : function () {
         var that = this;
-        $(this.cal).find('.lc-arrow').click(function() { that.el.trigger( 'changeMonth.lowCal' , $(this).data('move') )});
+        // Move calendar when arrow is clicked on
+        this.cal.delegate(".lc-arrow", "click" , function() { that.el.trigger( 'changeMonth.lowCal' , $(this).data('move') ); });
+        // Handle the user selections
+        this.cal.delegate('.lc-day-active', "click" , function() { that.el.trigger( 'setNewDate.lowCal' , { date : $(this).data('date') , el : this }); });
       },
       
       updateCalendar : function ( date ) {
         var opts = this.options;
-        log(opts.currentDate);
-        this.calMonth.text( opts.m_names[ opts.currentDate.Month - 1 ] );
+        
+        this.calMonth.text( opts.m_names[ opts.currentDate.Month - 1 ] + ' ' + opts.currentDate.Year );
+        return ( $.type( date ) === 'object' ) ? this.calBody.html(this._makeCalMonthTemplate()) : this.calBody.html(date);  
+      },
       
-        ( $.type( date ) === 'object' ) ? this.calBody.html(this._makeCalMonthTemplate()) : this.calBody.html(date);  
+      _changeSelected : function ( el ) {
+        this.calBody.children('li').removeClass(this.options.selectedClass);
+        $( el ).addClass(this.options.selectedClass);
       },
       
       // ## Date functions
@@ -125,26 +147,43 @@
       _setDate: function ( d ) {
         var cd = {};
         if ( typeof d === 'string' ) {
-          return this._splitDateString( d );
+          cd = this._splitDateString( d );
+          log([ 'cd' , cd ]);
         }
         else {
-        
-          
-            
           cd.Day = d.Day || d.getDate();
           cd.Month = d.Month || d.getMonth() + 1;
           cd.Year = d.Year || d.getFullYear();
-          cd.daysInMonth = this._daysInMonth( cd.Month , cd.Year );
-          cd.monthBegins = this._dayMonthBegins( cd.Month , cd.Year );
-          this.options.currentDate =  cd;
+        }
+        
+        cd.daysInMonth = this._daysInMonth( cd.Month , cd.Year );
+        cd.monthBegins = this._dayMonthBegins( cd.Month , cd.Year );
+        
+        this._updateCurrentDate( cd );
+        // cache test result and if we get a win we return the result
+        var cr = this._checkCache( 'date' , d );
+        if( cr )
+          return (this.sameMonth( cd )) ? this._removeSelected( cr ) : cr ;
           
-          // cache test result and if we get a win we return the result
-          var cr = this._checkCache( 'date' , d );
-          if( cr )
-            return cr;
-            
-          return this._addToCache( 'date' , cd , cd );
-        } 
+        return this._addToCache( 'date' , cd , cd );
+      },
+      
+      // ### updateCurrentDate
+      // update current date and set previous one to cache
+      _updateCurrentDate : function ( cd ) {
+        this.cache.prevDate = this.options.currentDate;
+        return (this.options.currentDate = cd);
+      },
+      
+      sameMonth : function ( cd ) {
+        var pd = this.cache.prevDate;
+        return ( pd.Year === cd.Year && pd.Month === cd.Month ) ? true : false;
+      },
+      
+      // ### _setInputDate  
+      // Change the value of the input
+      _setInputDate : function ( date ) {
+        this.el.val( date );
       },
       
       
@@ -152,35 +191,25 @@
       // Split the date string into a usable object       
       _splitDateString : function ( dateString ) {
         var d = {},
-            dateString = dateString.split('/'); 
+            dateArray = dateString.split('/'); 
         $.map( this.options.format , function(item, index) {
           switch (item) {
             case 'd' : 
             case 'dd' : 
-              d.Day = dateString[index];
+              d.Day = dateArray[index];
               break;
             case 'm' : 
             case 'mm' : 
-              d.Month = dateString[index];
+              d.Month = dateArray[index];
               break;
             case 'y' : 
             case 'yy' : 
             case 'yyyy' : 
-              d.Year = dateString[index];
+              d.Year = dateArray[index];
               break;
           }
         });
-                
-        d.daysInMonth = this._daysInMonth( d.Month , d.Year );
-        d.monthBegins = this._dayMonthBegins( d.Month , d.Year );
-        this.options.currentDate = d;
-        
-        // cache test result and if we get a win we return the result
-        var cr = this._checkCache( 'date' ,  d );
-        if( cr )
-          return cr;
-        
-        return this._addToCache( 'date' , d , d );
+        return d;
       },
       
       
@@ -195,7 +224,7 @@
       // How many days are in the month
       _changeMonth : function ( move ) {
         var cd = this.options.currentDate,
-            month = ( move == 'next' ) ? parseInt(cd.Month , 10) + 1: parseInt(cd.Month , 10) - 1,
+            month = ( move === 'next' ) ? parseInt(cd.Month , 10) + 1: parseInt(cd.Month , 10) - 1,
             year = cd.Year;
         if ( move === 'prev' && month === 0 ) {
           year--;
@@ -234,7 +263,7 @@
       _addToCache : function ( store , dateObj , storeObj ) {
         if ( !this.cache[store] ) { logError('No store called ' + store); return false;}
         if(!this.cache[store][ dateObj.Year ]) this.cache[store][ dateObj.Year ] = {};
-        return this.cache[store][ dateObj.Year ][ dateObj.Month ] = storeObj;
+        return (this.cache[store][ dateObj.Year ][ dateObj.Month ] = storeObj);
       },
       
       // ### _checkCache
@@ -257,12 +286,12 @@
       _initCal : function () {
         var tmpls = this.options.templates,
             uiObj = {};
-            
-        
-        uiObj['navBar'] = this._buildNavBar();
-        uiObj['instID'] = this.options.instID;
-        uiObj['days'] = this._buildCalDays();
-        
+
+        uiObj = {
+          navBar : this._buildNavBar(),
+          instID : this.options.instID,
+          days : this._buildCalDays()
+          };
 
         return this._tmpl( tmpls.cal , uiObj );
       },
@@ -270,7 +299,7 @@
       // ### Build nav bar 
       _buildNavBar : function( ) {
         var opts = this.options,
-            o = { 'date' : opts.m_names[ parseInt( opts.currentDate.Month , 10) - 1 ] };
+            o = { 'date' : opts.m_names[ parseInt( opts.currentDate.Month , 10) - 1 ] + ' ' + opts.currentDate.Year };
        return this._tmpl( this.options.templates.navBar , o );
       },
       
@@ -294,10 +323,10 @@
             that = this;
         
         $.each(daysObj, function(index, val) { 
-          template += that._tmpl( that.options.templates.days , { days : daysObj[index] })
+          template += that._tmpl( that.options.templates.days , { days : daysObj[index] });
         });
 
-        return this._addToCache( 'date' , this.options.currentDate , template );;
+        return this._addToCache( 'date' , this.options.currentDate , template );
       },
 
       
@@ -309,24 +338,27 @@
             totalCells = Math.ceil ( cellCount / 7 ) * 7,
             postBlankCells = totalCells - cellCount;
 
-        cal['pre_blank'] = {};
-        for (var i = 0; i < blankCells; i++) {
-          cal['pre_blank'][ i+1 ] = { Day : "&nbsp;", class : "lc-other-month" };
+        cal.pre_blank = {};
+        for ( var i = 0; i < blankCells; i++ ) {
+          cal.pre_blank[ i+1 ] = { Day : "&nbsp;", lcclass : "lc-other-month" };
         }
         
-        cal['days'] = {};
-        for (var i = 0; i < cd.daysInMonth; i++) {
-          cal['days'][ i+1 ] = { date : this._formatDate( { Day : i+1,  Month :  cd.Month , Year : cd.Year }) , Day : i+1 };
+        cal.days = {};
+        for ( i = 0; i < cd.daysInMonth; i++ ) {
+          cal.days[ i+1 ] = { date : this._formatDate( { Day : i+1,  Month :  cd.Month , Year : cd.Year }) , Day : i+1 , lcclass : "lc-day-active" , selected : ((i+1) === parseInt(cd.Day , 10)) ? this.options.selectedClass : false };
         }
         
-        cal['post_blank'] = {};
-        for (var i = 0; i < postBlankCells; i++) {
-          cal['post_blank'][ i+1 ] = { Day : i+1};
+        cal.post_blank = {};
+        for ( i = 0; i < postBlankCells; i++ ) {
+          cal.post_blank[ i+1 ] = { Day : i+1, lcclass : "lc-other-month" };
         }
         
         return cal;
       },
       
+      _removeSelected : function ( tmpl ) {
+        return tmpl.replace( this.options.selectedClass , '' );
+      }, 
       
       // ## John Resig's Micro-Templating
       // A clean way to keep my templates tidy. 
@@ -363,17 +395,17 @@
   var logError = function( message ) {
 	  if ( this.debug ){
 	    if ( this.debugStrict ) {
-	    throw message
+	    throw message;
 	    }
       else if ( this.console ) {
-        console.error( message )
+        console.error( message );
       }
     }
   };
 
   var log = function( message ) {
-  	if ( this.debug )
-	    if ( this.console ) console.log( message );
+    if(this.debug)
+      if( this.console ) console.log( message );
   };
     
   
