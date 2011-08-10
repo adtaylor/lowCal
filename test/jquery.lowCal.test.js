@@ -6,7 +6,6 @@ function tests( ) {
 
 module("lowCal", {
   setup: function() {
-    S.open('../index.html');
     this.dateSet = '17/08/2011';
     this.dateNew = new Date();
     this.td = this.dateNew.getDate() + "/" + (this.dateNew.getMonth()+1 ) + "/" + this.dateNew.getFullYear();
@@ -27,7 +26,6 @@ module("lowCal", {
 
 
 test("Set dates", function() {
-  console.log(S);
   var inst = $('.date').lowCal(),
       setDate = inst.data('lowCal').getCurrentDate();
       

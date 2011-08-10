@@ -20,8 +20,8 @@
   
   $.Cal.templates = {
     days :'<% $.each(days, function(index, val) { %><li class="lc-date <% if(val.lcclass) { %><%=val.lcclass%><% } %> <% if(val.selected) { %><%=val.selected%><% } %>" data-date="<%=val.date%>"><span><%=val.Day%></span></li><% }); %>',
-    navBar : '<li data-move="prev"  class="lc-arrow lc-arrow-prev"><img /><<</li><li class="lc-currDate"><%=date%></li><li data-move="next" class="lc-arrow lc-arrow-next lc-lastUnit"><img />>></li>',
-    cal : '<div id="lc-<%=instID%>" class="lowCal"><div class="lc-inner"><div class="lc-hd"><ul class="lc-navBar lc-line"><%=navBar%></ul><ul class="days lc-line"><li>Mo</li><li>Tu</li><li>We</li><li>Th</li><li>Fr</li><li>Sa</li><li class="lc-lastUnit">Su</li></ul></div><div class="bd"><ol class="lc-dates lc-line"><%=days%></ol></div></div></div><style type="text/css">.lc-hide{position: absolute;top:-1000px;left: -1000px;}.lc-bd, .lc-hd}display: inline-block;width: 100%;zoom: 1;vertical-align: top;}.lowCal li{list-style: none;}.lc-inner{position: relative;}.lc-lastUnit{display: table-cell;float: none;width: auto;_position: relative;_left: -3px;_margin-right: -3px;}.lc-inner:after, .lc-lastUnit:after, .lc-line:after{clear:both;display:block;visibility:hidden;overflow:hidden;height:0!important;line-height:0;font-size:xx-large;content:" x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x "}.lc-line{*zoom:1;margin:0}.lc-navBar .lc-arrow-prev{float: left;width : 13%}.lc-navBar .lc-currDate{float: left;width: 75%}.lowCal .days li, .lc-date{float: left;width: 14.29%;}</style>'
+    navBar : '<li data-move="prev"  class="lc-arrow lc-arrow-prev"><<</li><li class="lc-currDate"><%=date%></li><li data-move="next" class="lc-arrow lc-arrow-next lc-lastUnit">>></li>',
+    cal : '<div id="lc-<%=instID%>" class="lowCal"><div class="lc-inner"><div class="lc-hd"><ul class="lc-navBar lc-line"><%=navBar%></ul><ul class="lc-days lc-line"><li>Mo</li><li>Tu</li><li>We</li><li>Th</li><li>Fr</li><li>Sa</li><li class="lc-lastUnit">Su</li></ul></div><div class="bd"><ol class="lc-dates lc-line"><%=days%></ol></div></div></div><style type="text/css">.lc-hide{position:absolute;top:-1000px;left:-1000px;}.lowCal{font :13px/1.54 Helvetica,"Helvetica Neue",Arial,sans-serif;}.lc-bd,.lc-hd{display:inline-block;width:100%;zoom:1;vertical-align:top;}.lc-inner{position:relative;}.lc-inner:after,.lc-lastUnit:after,.lc-line:after{clear:both;display:block;visibility:hidden;overflow:hidden;height:0!important;line-height:0;font-size:xx-large;content:" x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x "}.lc-line{*zoom:1;margin:0}.lc-lastUnit{display:table-cell;float:none;width:auto;_position:relative;_left:-2px;_margin-right:-3px;}.lc-days{overflow:hidden;text-align:center;}.lowCal li,.lowCal ol,.lowCal ul{list-style:none;}.lc-dates{overflow:hidden;*zoom:1;}.lc-currDate{text-align:center;font-weight:bold;}.lc-navBar .lc-arrow-prev{float:left;width :13%}.lc-navBar .lc-currDate{float:left;width:75%}.lc-days li,.lc-date{float:left;width:14.29%;}.lc-date span{float:none;display:block;text-align:right;padding:2px;margin-left:4px;margin-bottom:2px;margin-right:0;cursor:pointer;}.lc-other-month span{cursor:not-allowed;}.lc-hide{position:absolute;top:-1000px;left:-1000px;}.lc-date .lc-lastUnit{float:none;width:auto;}</style>'
   };
   
   $.Cal.settings = {
@@ -336,21 +336,25 @@
             blankCells = (cd.monthBegins === 0 ) ? 6 : cd.monthBegins - 1,
             cellCount = blankCells + cd.daysInMonth,
             totalCells = Math.ceil ( cellCount / 7 ) * 7,
-            postBlankCells = totalCells - cellCount;
+            postBlankCells = totalCells - cellCount,
+            count = 1;
 
         cal.pre_blank = {};
         for ( var i = 0; i < blankCells; i++ ) {
-          cal.pre_blank[ i+1 ] = { Day : "&nbsp;", lcclass : "lc-other-month" };
+          cal.pre_blank[ i+1 ] = { Day : "&nbsp;", lcclass : ( count % 7 === 0 ) ? "lc-other-month lc-lastUnit" : "lc-other-month" };
+          count++;
         }
         
         cal.days = {};
         for ( i = 0; i < cd.daysInMonth; i++ ) {
-          cal.days[ i+1 ] = { date : this._formatDate( { Day : i+1,  Month :  cd.Month , Year : cd.Year }) , Day : i+1 , lcclass : "lc-day-active" , selected : ((i+1) === parseInt(cd.Day , 10)) ? this.options.selectedClass : false };
+          cal.days[ i+1 ] = { date : this._formatDate( { Day : i+1,  Month :  cd.Month , Year : cd.Year }) , Day : i+1 , lcclass : ( count % 7 === 0 ) ? "lc-day-active lc-lastUnit" : "lc-day-active" , selected : ((i+1) === parseInt(cd.Day , 10)) ? this.options.selectedClass : false };
+          count++;
         }
         
         cal.post_blank = {};
         for ( i = 0; i < postBlankCells; i++ ) {
-          cal.post_blank[ i+1 ] = { Day : i+1, lcclass : "lc-other-month" };
+          cal.post_blank[ i+1 ] = { Day : i+1, lcclass : ( count % 7 === 0 ) ? "lc-other-month lc-lastUnit" : "lc-other-month" };
+          count++;
         }
         
         return cal;
