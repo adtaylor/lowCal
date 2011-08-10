@@ -21,7 +21,7 @@
   $.Cal.templates = {
     days :'<% $.each(days, function(index, val) { %><li class="lc-date <% if(val.lcclass) { %><%=val.lcclass%><% } %> <% if(val.selected) { %><%=val.selected%><% } %>" data-date="<%=val.date%>"><span><%=val.Day%></span></li><% }); %>',
     navBar : '<li data-move="prev"  class="lc-arrow lc-arrow-prev"><<</li><li class="lc-currDate"><%=date%></li><li data-move="next" class="lc-arrow lc-arrow-next lc-lastUnit">>></li>',
-    cal : '<div id="lc-<%=instID%>" class="lowCal"><div class="lc-inner"><div class="lc-hd"><ul class="lc-navBar lc-line"><%=navBar%></ul><ul class="lc-days lc-line"><li>Mo</li><li>Tu</li><li>We</li><li>Th</li><li>Fr</li><li>Sa</li><li class="lc-lastUnit">Su</li></ul></div><div class="bd"><ol class="lc-dates lc-line"><%=days%></ol></div></div></div><style type="text/css">.lc-hide{position:absolute;top:-1000px;left:-1000px;}.lowCal{font :13px/1.54 Helvetica,"Helvetica Neue",Arial,sans-serif;}.lc-bd,.lc-hd{display:inline-block;width:100%;zoom:1;vertical-align:top;}.lc-inner{position:relative;}.lc-inner:after,.lc-lastUnit:after,.lc-line:after{clear:both;display:block;visibility:hidden;overflow:hidden;height:0!important;line-height:0;font-size:xx-large;content:" x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x "}.lc-line{*zoom:1;margin:0}.lc-lastUnit{display:table-cell;float:none;width:auto;_position:relative;_left:-2px;_margin-right:-3px;}.lc-days{overflow:hidden;text-align:center;}.lowCal li,.lowCal ol,.lowCal ul{list-style:none;}.lc-dates{overflow:hidden;*zoom:1;}.lc-currDate{text-align:center;font-weight:bold;}.lc-navBar .lc-arrow-prev{float:left;width :13%}.lc-navBar .lc-currDate{float:left;width:75%}.lc-days li,.lc-date{float:left;width:14.29%;}.lc-date span{float:none;display:block;text-align:right;padding:2px;margin-left:4px;margin-bottom:2px;margin-right:0;cursor:pointer;}.lc-other-month span{cursor:not-allowed;}.lc-hide{position:absolute;top:-1000px;left:-1000px;}.lc-date .lc-lastUnit{float:none;width:auto;}</style>'
+    cal : '<div id="lc-<%=instID%>" class="lowCal"><div class="lc-inner"><div class="lc-hd"><ul class="lc-navBar lc-line"><%=navBar%></ul><ul class="lc-days lc-line"><li>Mo</li><li>Tu</li><li>We</li><li>Th</li><li>Fr</li><li>Sa</li><li class="lc-lastUnit">Su</li></ul></div><div class="bd"><ol class="lc-dates lc-line"><%=days%></ol></div></div></div><style type="text/css">.lc-hide{position:absolute;top:-1000px;left:-1000px;}.lowCal{font :13px/1.54 Helvetica,"Helvetica Neue",Arial,sans-serif;}.lc-bd,.lc-hd{display:inline-block;width:100%;zoom:1;vertical-align:top;}.lc-inner{position:relative;}.lc-inner:after,.lc-lastUnit:after,.lc-line:after{clear:both;display:block;visibility:hidden;overflow:hidden;height:0!important;line-height:0;font-size:xx-large;content:" x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x "}.lc-line{*zoom:1;margin:0}.lc-lastUnit{display:table-cell;float:none;width:auto;_position:relative;_left:-2px;_margin-right:-3px;}.lc-days{overflow:hidden;text-align:center;}.lowCal li,.lowCal ol,.lowCal ul{list-style:none;}.lc-dates{overflow:hidden;*zoom:1;}.lc-currDate{text-align:center;font-weight:bold;}.lc-navBar .lc-arrow-prev{float:left;width :13%}.lc-navBar .lc-currDate{float:left;width:75%}.lc-days li,.lc-date{float:left;width:14.29%;}.lc-date span{float:none;display:block;text-align:right;padding:2px;margin-left:4px;margin-bottom:2px;margin-right:0;cursor:pointer;}.lc-other-month span{cursor:not-allowed;}.lc-hide{position:absolute;top:-1000px;left:-1000px;}.lowCal .lc-lastUnit{float:none;width:auto;padding-bottom:3px;} .lc-arrow{ font-weight:bold;cursor:pointer }</style>'
   };
   
   $.Cal.settings = {
@@ -32,7 +32,8 @@
     format : 'dd/mm/yyyy',
     m_names :  ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
     templates : null,
-    selectedClass : 'lc-selected'
+    selectedClass : 'lc-selected',
+    styles : false
   };
   
   // ## Prototype stuff
@@ -106,9 +107,20 @@
       _uiInit : function () {
         // initalise the main templates
         var calendar = this._initCal(), 
-            that = this;
+            that = this,
+            opts = this.options;
+        
+        if( !opts.styles ) {
+          opts.styles = {
+           width : this.el.css('width'),
+           display : this.el.css('display'),
+           position : this.el.css('position')
+          };
+        }
+        
         // Wrap the input 
         this.el.wrap('<div id="lc-wrap-'+this.options.instID+'" />');
+        
         this.el.hide().after( calendar );
         
         this.cal = $('#lc-'+this.options.instID);
@@ -116,6 +128,12 @@
         this.calMonth = $(this.cal).find('.lc-currDate');
         // Now the calendar is built lets attach the events
         this._uiInteractions();
+      },
+      
+      // ### styleAsInput()  
+      // Public method to give cal the same styles as input
+      styleAsInput : function () {
+        $('#lc-wrap-'+this.options.instID).css(this.options.styles);
       },
       
       // ### _uiInteractions  
@@ -148,7 +166,6 @@
         var cd = {};
         if ( typeof d === 'string' ) {
           cd = this._splitDateString( d );
-          log([ 'cd' , cd ]);
         }
         else {
           cd.Day = d.Day || d.getDate();

@@ -1,6 +1,6 @@
 module("/lowCal/index.html",{
     setup : function(){
-        S.open('/lowCal/index.html');
+        S.open('../index.html');
     },
     teardown : function(){
         

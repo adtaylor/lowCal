@@ -1,16 +1,16 @@
 <div id="lc-<%=instID%>" class="lowCal">
   <div class="lc-inner">
     <div class="lc-hd">
-      <ul class="lc-navBar lc-line"><%=navBar%></ul>
-      <ul class="lc-days lc-line">
-        <li>Mo</li><li>Tu</li><li>We</li><li>Th</li><li>Fr</li><li>Sa</li><li class="lc-lastUnit">Su</li>
-      </ul>
+      <ul class="lc-navBar lc-line"><%=navBar%></ul><ul class="lc-days lc-line"><li>Mo</li><li>Tu</li><li>We</li><li>Th</li><li>Fr</li><li>Sa</li><li class="lc-lastUnit">Su</li></ul>
     </div>
     <div class="bd">
       <ol class="lc-dates lc-line"><%=days%></ol>
     </div>
   </div>
 </div>
+
+
+
 
 <style type="text/css">
 .lc-hide{position:absolute;top:-1000px;left:-1000px;}
@@ -30,5 +30,6 @@
 .lc-date span{float:none;display:block;text-align:right;padding:2px;margin-left:4px;margin-bottom:2px;margin-right:0;cursor:pointer;}
 .lc-other-month span{cursor:not-allowed;}
 .lc-hide{position:absolute;top:-1000px;left:-1000px;}
-.lc-date .lc-lastUnit{float:none;width:auto;}
+.lowCal .lc-lastUnit{float:none;width:auto;padding-bottom:3px;}
+.lc-arrow{ font-weight:bold;cursor:pointer }
 </style>
